@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<!-- Load jQuery library from Google's CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Four different ways of changing colors -->
+<!-- (a) Five separate color-changing functions -->
+<script src="js/turnSpecificColor.js" type="text/javascript"></script>
+<!-- One general color changing function -->
+<script src="js/changeColor.js" type="text/javascript"></script>
+<!-- Event based color changing function -->
+<script src="js/event.js" type="text/javascript"></script>
+<!-- jQuery color changing function -->
+<script src="js/jquerycolor.js" type="text/javascript"></script>
+<!-- JS to reset colour for all -->
+<script src="js/resetColor.js" type="text/javascript"></script>
+<!-- change text to white -->
+<script src="js/whiteText.js" type="text/javascript"></script>
+  
+<html lang="en">
+    <head>
+        <!-- assigning this div the id "colorDiv" means any of the functions can change this text -->
+        <!-- this is because the functions look for that id in the DOM  -->
+        <div id="colorDiv"><h1>Change my color!</h1></div>        
+        
+        <!-- I'm using a new id here but unless I also use it in a function it won't be used -->
+        <div id="carly"><h3>Individual functions for Background Color (turnSpecificColor.js)</h3></div>
+            <button onclick="turnPurple();">Purple</button>
+            <button onclick="turnGreen();">Green</button>
+            <button onclick="turnOrange();">Orange</button>
+            <button onclick="turnRed();">Red</button>
+            <button onclick="turnBlue();">Blue</button>            
+        </div>
+        
+        <!-- this passes in a colour as a parameter to the function -->
+        <div id="owen"><h3>Single function for Background Color (changeColor.js)</h3></div>
+        <div>
+            <button onclick="changeColor('purple');">Purple</button>
+            <button onclick="changeColor('green');">Green</button>
+            <button onclick="changeColor('orange');">Orange</button>
+            <button onclick="changeColor('red');">Red</button>
+            <button onclick="changeColor('blue');">Blue</button>            
+        </div>        
+        <h3>Event Handler for Background Color (event.js)</h3>
+        <!-- this uses the event to look at the button title to get the corresponding color -->
+        <!-- when the button is clicked, the eventhandler remembers the title (Purple, Green etc)
+        and thus knows which one to use -->
+        <div>
+            <button onclick="changeColorEvent(event);">Purple</button>
+            <button onclick="changeColorEvent(event);">Green</button>
+            <button onclick="changeColorEvent(event);">Orange</button>
+            <button onclick="changeColorEvent(event);">Red</button>
+            <button onclick="changeColorEvent(event);">Blue</button>            
+        </div>                
+        <div>
+        <h3>using jQuery to change Background Color (jquerycolor.js)</h3>        
+            <button class="jQButton">Purple</button>
+            <button class="jQButton">Green</button>
+            <button class="jQButton">Orange</button>
+            <button class="jQButton">Red</button>
+            <button class="jQButton">Blue</button>            
+        </div>
+        <h1></h1>
+        <div><button onclick="whiteText();">Change text to white</button></div>
+        <h1></h1>
+        <div><button onclick="resetColor();">Reset</button></div>
+    </head>      
+
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>        
+        <title>
+            hello, title with paragraphs
+        </title>
+    </head>
+    <body>
+         <!--run the greet function but don't submit anything-->
+        <form>
+            <!-- id is how to identify this
+            placeholder is the default text before user types anything
+            type I actually don't know
+            autocomplete is used to turn on or off history of text typed
+            autofocus means cursor starts in the box -->
+            <input id="user_entered_name"
+            placeholder="What's your name?"
+            type="text"
+            autocomplete="off"            
+            autofocus>
+            <!-- this is the button -->
+            <input type="submit" value="Greetings">
+        </form>
+
+        <button id="city">City</button>
+        <p>The city in which you live is <span id="outputCity">____</span>.</p>
+
+        <script>
+            function greet()
+            {
+                // document is a special global variable which provides access to the DOM
+                // querySelector checks all nodes in DOM until it finds an instance of the value specified
+                // which in this case is #user_entered_name (the ID we used in the form). When it finds the 
+                // node it's in, it looks INSIDE the node to get the actual value (the text entered by the user)
+                // (As is probably obvious, the 'name' variable below stores the value returned)
+                let name = document.querySelector('#user_entered_name').value;                                
+                alert('hello, ' + name);                
+            }
+
+            // this 'listens' to the Form tag and if submit is sent it calls greet function
+            function listen()
+            {
+                document.querySelector('form').addEventListener('submit', greet)
+            }
+
+            // Lambda version of above.             
+            // the only oddity is the e part which 
+            // document.querySelector('form').addEventListener('submit', function(e) {
+            //     let name = document.querySelector('#user_entered_name').value;
+            //     alert('hello, ' + name);                
+            //     e.preventDefault()
+            // });
+
+            // // // only after DOM is fully loaded, run the above listen function
+            document.addEventListener('DOMContentLoaded', listen);
+
+
+            document.getElementById("city").onclick = function(){
+        	var city = prompt("Enter your city");
+            document.getElementById("outputCity").innerText = city;
+            }            
+            console.log(outputCity);
+            console.log(city);
+
+        </script>
+
+        
+
+    </body>
+</html>

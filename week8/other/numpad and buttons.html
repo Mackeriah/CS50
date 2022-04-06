@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <style>
+		div.fixed 
+		{
+			position: fixed;
+			width: 98.5%;
+			bottom: 10px;
+			border: 1px solid #8AC007;
+			text-align: center;
+		}		
+    </style>
+	
+	<script> 
+		function reply_click(clicked_id)
+		{
+			alert(clicked_id);
+		}		
+	</script>
+
+    <title>
+        Fun with JavaScript!
+    </title>
+    <head>
+        <link href="tables.css" rel="stylesheet" />		
+    </head>
+    <body>
+        <h1 data-id="this-is-cs50x">
+        </h1>
+        </span>
+        <header class="centered large">
+            Owen FitzGerald
+			<br></br>
+        </header>
+        <main class="centered medium">
+            Welcome to my home page!			
+			<br></br>
+            <table>
+                <tr>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>                    
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>6</td>
+                </tr>
+				<tr>
+                    <td>7</td>
+                    <td>8</td>
+                    <td>9</td>
+                </tr>
+				<tr>
+                    <td style="text-align:bottom">*</td>
+                    <td>0</td>
+                    <td>#</td>
+                </tr>
+            </table>			
+		
+			<button id="You clicked button 1" onClick="reply_click(this.id)">Button 1</button>
+			<button id="You clicked button 2" onClick="reply_click(this.id)">Button 2</button>
+			<button id="You clicked button 3" onClick="reply_click(this.id)">Button 3</button>
+			
+			
+        </main>
+        <footer>
+        </footer>
+
+        <div class="fixed">Copyright &#169; Owen FitzGerald 2021</div>
+    </body>
+</html>

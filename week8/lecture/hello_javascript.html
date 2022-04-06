@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <script>
+
+            function greet()
+            {
+                // document is a special global variable which provides access to the webpage DOM
+                // querySelector checks all nodes in DOM until it finds an instance of the value specified
+                // which in this case is #user_entered_name (the ID we used in the form). When it finds the 
+                // node it's in, it looks INSIDE the node to get the actual value (the text entered by the user)
+                // (As is probably obvious, the 'name' variable below stores the return value)
+                let name = document.querySelector('#user_entered_name').value;
+                alert('Hello to you ' + name +'!');
+            }
+
+        </script>
+        <title>
+            hello
+        </title>
+    </head>
+    <body>
+         <!--run the greet function but don't submit anything-->
+         <!-- DAVID MALAN SAID THE BELOW CODE IN FORM ONSUBMIT SHOULD NEVER BE DONE IN THE REAL WORLD  -->
+         <!-- IT WAS JUST FOR DEMONTSRATION PURPOSES -->
+        <form onsubmit="greet(); return false; ">
+            <input id="user_entered_name"
+            placeholder="What's your name?"
+            type="text"
+            autocomplete="off"
+            autofocus>
+            <input type="submit" value="Greet user">
+        </form>
+    </body>
+</html>
