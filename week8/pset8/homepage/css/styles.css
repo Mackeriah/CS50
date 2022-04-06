@@ -227,3 +227,16 @@ a {
   background-repeat: no-repeat;
 }
 
+#newsletter {
+  opacity: 50%;
+  font-size: small;  
+}
+
+a:hover.nav-links {
+  color: red;  
+}
+
+input:focus {
+  background: lightblue;  
+  /* opacity: 150%; */
+}
