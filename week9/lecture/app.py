@@ -6,10 +6,11 @@ app = Flask(__name__)
 # tell Flask when to run this function
 @app.route("/")
 def index():    
-    # print to the users screen
+    # render index.html to the users screen
     return render_template("index.html")
 
-@app.route("/greet")
+@app.route("/greet", methods=["POST"])
 def greet():
-    name = request.args.get("name")
+    name = request.form.get("name", "world")
     return render_template("greet.html", name=name)
+

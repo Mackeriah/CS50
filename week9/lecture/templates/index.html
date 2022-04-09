@@ -1,17 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <form action="/greet" method="get">
+<!-- this tells Flask that this code extends layout.html -->
+{% extends "layout.html" %}
+
+<!-- the below lines tell Flash that this is my body code and that it
+needs to plug it into the layout.html placeholder -->
+{% block body %}
+
+    <form action="/greet" method="post">
         <input type="text" autocomplete="off" autofocus name="name" placeholder="Name">
         <input type="submit">
-    </form>
+    </form>  
 
-    
-</body>
-</html>
+{% endblock %}
