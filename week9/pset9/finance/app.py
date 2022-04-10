@@ -111,13 +111,67 @@ def logout():
 @login_required
 def quote():
     """Get stock quote."""
-    return apology("TODO")
+    # return quote.html on GET
+    if request.method == "GET":
+        return render_template("quote.html")
+    else:
+        symbol = request.form.get("symbol")
 
+        # check that user entered a symbol
+        if not symbol:
+            return apology("No symbol entered")
+
+        # store in variable
+        stock = lookup(symbol.upper())
+
+        # check API to see if symbol exists
+        if stock == None:
+            return apology("Symbol not found")
+
+        # if it is found include in quoted
+        return render_template("quoted.html", name = stock["name"], price = stock["price"], symbol = stock["symbol"])
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
-    return apology("TODO")
+    # If request via GET
+    if request.method == "GET":
+        return render_template("register.html"  )
+    # else if POST
+    else:
+        username = request.form.get("username")
+        password = request.form.get("password")
+        confirmation = request.form.get("confirmation")
+
+        # handle blank username
+        if not username:
+            return apology("Username required")
+
+        # handle blank password
+        if not password:
+            return apology("Password cannot be blank")
+
+        # if confirmation password blank
+        if not confirmation:
+            return apology("Confirmation password cannot be blank")
+
+        # check if passwords don't match
+        if password != confirmation:
+            return apology("Passwords must match")
+
+        # hash password for registration
+        passwordHash = generate_password_hash(password)
+
+        # add user to DB
+        # pretty sure this should work as per https://docs.python.org/3/tutorial/errors.html
+        try:
+            db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", username, passwordHash)
+            return apology("New user registered!")
+        # check if username already exists in DB
+        except:
+            return apology("User already registered!")
+
+
 
 
 @app.route("/sell", methods=["GET", "POST"])
