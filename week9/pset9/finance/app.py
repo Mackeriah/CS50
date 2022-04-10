@@ -6,6 +6,9 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 
+# might not need this
+import datetime
+
 from helpers import apology, login_required, lookup, usd
 
 # Configure application
@@ -50,7 +53,60 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+    if request.method == "GET":
+        return render_template("buy.html")
+
+    else:
+        symbol = request.form.get("symbol")
+        # cast to int otherwise it'll be handled as text?
+        shares = int(request.form.get("shares"))
+
+        # check that user entered a symbol
+        if not symbol:
+            return apology("No symbol entered")
+
+        # store in variable
+        stock = lookup(symbol.upper())
+
+        # check API to see if symbol exists
+        if stock == None:
+            return apology("Symbol not found")
+
+        # check that share is a positive int
+        if shares < 0:
+            return apology("Share cannot be zero or negative")
+
+        # check if user cannot afford shares at current price
+        # store transaction value
+        transaction_value = shares * stock["price"]
+
+        # get currently signed in user id
+        user_id = session["user_id"]
+
+        # store users current cash balance
+        # :id can be changed to ?
+        user_cash_db = db.execute("SELECT cash FROM users WHERE id = :id", id=user_id)
+        user_cash = user_cash_db[0]["cash"]
+
+        # check if user has enough!
+        if user_cash < transaction_value:
+            return apology("Insufficient funds")
+
+        # update tables with user's purchase
+        update_user_balance = user_cash - transaction_value
+        # update user table
+        db.execute("UPDATE users SET cash = ? WHERE id = ?", update_user_balance, user_id)
+        # update transaction table
+
+        # get date and time of stock purchase
+        date = datetime.datetime.now()
+        db.execute("INSERT INTO transactions (user_id, symbol, shares, price, date) VALUES (?, ?, ?, ?, ?)", user_id, stock["symbol"], shares, stock["price"], date)
+
+        # let user know successful transfer
+        flash("Share purchased!")
+
+        # return user to home
+        return redirect("/")
 
 
 @app.route("/history")
