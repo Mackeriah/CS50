@@ -46,7 +46,18 @@ def after_request(response):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+    # get user id
+    user_id = session["user_id"]
+
+    # get user transaction information (history?)
+    transactions_db = db.execute("SELECT symbol, SUM(shares) AS shares, price FROM transactions WHERE user_id = ? GROUP BY symbol", user_id)
+
+    # get user current cash amount
+    cash_db = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
+    # get cash amount from dictionary
+    cash = cash_db[0]["cash"]
+
+    return render_template("index.html", database = transactions_db, cash = cash)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -58,6 +69,12 @@ def buy():
 
     else:
         symbol = request.form.get("symbol")
+
+        shares = request.form.get("shares")
+        if not shares.isdigit():
+            return apology("You cannot purchase partial shares.")
+
+
         # cast to int otherwise it'll be handled as text?
         shares = int(request.form.get("shares"))
 
@@ -73,7 +90,7 @@ def buy():
             return apology("Symbol not found")
 
         # check that share is a positive int
-        if shares < 0:
+        if shares <= 0:
             return apology("Share cannot be zero or negative")
 
         # check if user cannot afford shares at current price
@@ -113,7 +130,10 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+    # get user id
+    user_id = session["user_id"]
+    transactions_db = db.execute("SELECT * FROM transactions WHERE user_id = :id", id=user_id)
+    return render_template("history.html", transactions = transactions_db)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -192,8 +212,8 @@ def register():
     """Register user"""
     # If request via GET
     if request.method == "GET":
-        return render_template("register.html"  )
-    # else if POST
+        return render_template("register.html")
+
     else:
         username = request.form.get("username")
         password = request.form.get("password")
@@ -218,20 +238,77 @@ def register():
         # hash password for registration
         passwordHash = generate_password_hash(password)
 
-        # add user to DB
-        # pretty sure this should work as per https://docs.python.org/3/tutorial/errors.html
+        # add user to DB as per https://docs.python.org/3/tutorial/errors.html
         try:
-            db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", username, passwordHash)
-            return apology("New user registered!")
+            new_user = db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", username, passwordHash)
+            return redirect("/")
+
         # check if username already exists in DB
         except:
             return apology("User already registered!")
-
-
-
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    if request.method == "GET":
+        user_id = session["user_id"]
+        symbols_user = db.execute("SELECT symbol FROM transactions WHERE user_id = ? GROUP BY symbol HAVING SUM(shares) > 0", user_id)
+        return render_template("sell.html", symbols = [row["symbol"] for row in symbols_user])
+
+    else:
+        symbol = request.form.get("symbol")
+        # cast to int otherwise it'll be handled as text?
+        shares = int(request.form.get("shares"))
+
+        # check that user entered a symbol
+        if not symbol:
+            return apology("No symbol entered")
+
+        # store in variable
+        stock = lookup(symbol.upper())
+
+        # check API to see if symbol exists
+        if stock == None:
+            return apology("Symbol not found")
+
+        # check that share is a positive int
+        if shares < 0:
+            return apology("Share cannot be zero or negative")
+
+        # check if user cannot afford shares at current price
+        # store transaction value
+        transaction_value = shares * stock["price"]
+
+        # get currently signed in user id
+        user_id = session["user_id"]
+
+        # store users current cash balance
+        # :id can be changed to ?
+        user_cash_db = db.execute("SELECT cash FROM users WHERE id = :id", id=user_id)
+        user_cash = user_cash_db[0]["cash"]
+
+        # retrive shares user owns
+        # getUserOwnedShares = db.execute("SELECT shares FROM transactions WHERE user_id=:id AND symbol = :symbol GROUP BY symbol", id=user_id, symbol=symbol)
+        getUserOwnedShares = db.execute("SELECT SUM(shares) AS shares FROM transactions WHERE user_id=:id AND symbol = :symbol GROUP BY symbol", id=user_id, symbol=symbol)
+        userOwnedShares = getUserOwnedShares[0]["shares"]
+
+        if shares > userOwnedShares:
+            return apology("Insufficent number of shares owned")
+
+        # update tables with user's purchase
+        update_user_balance = user_cash + transaction_value
+
+        # update user table
+        db.execute("UPDATE users SET cash = ? WHERE id = ?", update_user_balance, user_id)
+        # update transaction table
+
+        # get date and time of stock purchase
+        date = datetime.datetime.now()
+        db.execute("INSERT INTO transactions (user_id, symbol, shares, price, date) VALUES (?, ?, ?, ?, ?)", user_id, stock["symbol"], (-1)*shares, stock["price"], date)
+
+        # let user know successful transfer
+        flash("Share sold!")
+
+        # return user to home
+        return redirect("/")
