@@ -5,12 +5,12 @@
 {% endblock %}
 
 {% block main %}
-    <h1>Sell Stock</h1>
     <form action="/sell" method="post">
         <div class="form-group">
             <select name="symbol">
                 {% for symbol in symbols %}
                 <!--get symbols and display in dropdown-->
+                <!--tried to get name here but damned if I can work it out-->
                     <option> {{ symbol["symbol"] }}</option>
                 {% endfor %}
             </select>

@@ -1,26 +1,26 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    History
+    Transaction History
 {% endblock %}
 
 {% block main %}
     <table>
         <thead>
             <tr>
-                <th>Symbols</th>
+                <th style="text-align: left">Symbol</th>
                 <th>Shares</th>
                 <th>Price</th>
-                <th>Date</th>
+                <th style="text-align: right" id="td-wide">Transacted</th>
             </tr>
         </thead>
         <tbody>
             {% for row in transactions %}
             <tr>
-                <td id="test"><strong>{{ row["symbol"] }}</strong></td>
+                <td style="text-align: left" id="test"><strong>{{ row["symbol"] }}</strong></td>
                 <td>{{ row["shares"] }}</td>
                 <td>{{ row["price"] | usd }}</td>
-                <td>{{ row["time"] }}</td>
+                <td style="text-align: right">{{ row["time"] }}</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -22,15 +22,10 @@ nav .navbar-brand .green
     color: #2e944b;
 }
 
-/*th {*/
-/*    color: red;*/
-/*    font-size: large;*/
-/*}*/
-
-/*td {*/
-/*    color: green;*/
-/*    font-size: small;*/
-/*}*/
+.btn-primary {
+    margin: 20px;
+    background-color: green;
+}
 
 table {
   border-collapse: separate;
@@ -59,3 +54,27 @@ td {
     color: green;
     text-decoration: underline;
 }
+
+#total {
+    color: green;
+    font-weight: bold;
+}
+
+#td-wide {
+    width: 400px;
+}
+
+
+
+/*table {*/
+/*  border: 1px solid black;*/
+/*  table-layout: fixed;*/
+/*  width: 200px;*/
+/*}*/
+
+/*th,*/
+/*td {*/
+/*  border: 1px solid black;*/
+/*  width: 100px;*/
+/*  overflow: hidden;*/
+/*}*/

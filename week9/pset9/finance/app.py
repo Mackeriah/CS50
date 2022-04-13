@@ -6,9 +6,6 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.security import check_password_hash, generate_password_hash
 
-# might not need this
-import datetime
-
 from helpers import apology, login_required, lookup, usd
 
 # Configure application
@@ -51,19 +48,21 @@ def index():
 
     # get user related information to display on / page
     # SUM shares so that each symbol only has one line
-    stocks = db.execute("SELECT symbol, name, price, SUM(shares) as totalShares FROM transactions WHERE user_id = ? GROUP BY symbol", user_id)
+    userStocks = db.execute(
+        "SELECT name, price, symbol, SUM(shares) as ownedShares FROM transactions WHERE user_id = ? GROUP BY symbol", user_id)
 
     # get cash information for user from dictionary
-    cash = db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"]
+    userCashBalance = db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"]
 
-    total = cash
+    # can't work out why I couldn't get it to work using userCashBalance in For loop  /shrug/ Seems hacky but works!
+    shareTotalValue = userCashBalance
 
     # calculate total share value per line
-    for stock in stocks:
-        total += stock["price"] * stock["totalShares"]
+    for stock in userStocks:
+        shareTotalValue += stock["price"] * stock["ownedShares"]
 
     # first is variable name from html, second is variable name from python
-    return render_template("index.html", stocks=stocks, cash=cash, usd=usd, total=total)
+    return render_template("index.html", usd=usd, total=shareTotalValue, cash=userCashBalance, stocks=userStocks)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -73,26 +72,24 @@ def buy():
     if request.method == "GET":
         return render_template("buy.html")
     else:
-        pass
-
-        # get symbol info and uppercase
+        # get symbol info and uppercase it
         symbol = request.form.get("symbol").upper()
 
         # use lookup function to get info on product and store in variable
         product = lookup(symbol)
 
-        # check that user entered a symbol
-        if not symbol:
-            return apology("No symbol entered")
-        elif not product:
-            return apology("Invalid No symbol entered")
+        # check that user entered a symbol and that it exists
+        if not symbol or not product:
+            return apology("Symbol unavailable or not entered")
 
+        # really struggled with this damn part but eventually found a workaround with some help online, phew!!!
+        # still think my original approach must work somehow though!
         try:
             # get what user entered in shares field and cast to int
             shares = int(request.form.get("shares"))
         except:
             # if we can't cast to int then error out
-            return apology("Share must be an integer")
+            return apology("Sorry, you can only buy whole shares")
 
         # check that share is a positive int
         if shares <= 0:
@@ -114,10 +111,13 @@ def buy():
         else:
             # reduce user cash balance
             db.execute("UPDATE users SET cash = ? WHERE id = ?", userCash - transactionCost, user_id)
-            db.execute("INSERT INTO transactions (user_id, name, shares, price, type, symbol) VALUES (?, ?, ?, ?, ?, ?)", user_id, productName, shares, productPrice, 'buy', symbol)
+            # add to transactions table
+            db.execute("INSERT INTO transactions (user_id, name, shares, price, type, symbol) VALUES (?, ?, ?, ?, ?, ?)",
+                       user_id, productName, shares, productPrice, 'buy', symbol)
 
         # return user to home
         return redirect("/")
+
 
 @app.route("/history")
 @login_required
@@ -125,8 +125,8 @@ def history():
     """Show history of transactions"""
     # get user id
     user_id = session["user_id"]
-    transactions_db = db.execute("SELECT * FROM transactions WHERE user_id = :id", id=user_id)
-    return render_template("history.html", transactions = transactions_db)
+    transactionHistory = db.execute("SELECT * FROM transactions WHERE user_id = ?", user_id)
+    return render_template("history.html", transactions=transactionHistory)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -176,7 +176,7 @@ def logout():
     return redirect("/")
 
 
-@app.route("/quote", methods=["GET", "POST"])  # NEW #
+@app.route("/quote", methods=["GET", "POST"])
 @login_required
 def quote():
     """Get stock quote."""
@@ -191,20 +191,19 @@ def quote():
         if not symbol:
             return apology("No symbol entered")
 
-        # use lookup function to get info on product and store in variable
-        product = lookup(symbol)
+        # use lookup function to get info and store in variable
+        productInfo = lookup(symbol)
 
-        # if the symbol doesn't exist
-        if not product:
+        # if the product doesn't exist
+        if not productInfo:
             return apology("Sorry that product was not found")
 
         # if symbol was found, display required info
         # reminder: first name is one in HTML, second is variable declared above
-        return render_template("quoted.html", product=product, usd=usd)
+        return render_template("quoted.html", usd=usd, product=productInfo)
 
 
-
-@app.route("/register", methods=["GET", "POST"]) # NEW #
+@app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
     # display page if not POST
@@ -215,10 +214,6 @@ def register():
         userName = request.form.get("username")
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
-
-        # handle blank username
-        if not userName:
-            return apology("Username required")
 
         # handle blank password
         if not password:
@@ -232,15 +227,21 @@ def register():
         if password != confirmation:
             return apology("Passwords must match")
 
+        # handle blank username
+        if not userName:
+            return apology("Username required")
+
         # hash password for registration
         passwordHash = generate_password_hash(password)
 
-        # try to add user to DB as per https://docs.python.org/3/tutorial/errors.html
+        # add user to users table (https://docs.python.org/3/tutorial/errors.html)
         try:
             db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", userName, passwordHash)
             return redirect("/")
-        except: # if username already exists in DB give apology
+        except:
+            # if username already exists in DB give apology
             return apology("User already registered!")
+
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
@@ -252,10 +253,10 @@ def sell():
         user_id = session["user_id"]
 
         # get symbols user owns
-        symbols = db.execute("SELECT symbol FROM transactions WHERE user_id = ? GROUP BY symbol", user_id)
+        userOwnedSymbols = db.execute("SELECT symbol FROM transactions WHERE user_id = ? GROUP BY symbol", user_id)
 
         # display data
-        return render_template("sell.html", symbols=symbols)
+        return render_template("sell.html", symbols=userOwnedSymbols)
 
     else:
         # get user id
@@ -276,19 +277,21 @@ def sell():
         productName = lookup(symbol)["name"]
         sellPrice = shares * productPrice
 
-
         # get number of shares owned by user and group them
-        userSharesOwned = db.execute("SELECT shares FROM transactions WHERE user_id = ? AND symbol = ? GROUP BY symbol", user_id, symbol)[0]["shares"]
+        userSharesOwned = db.execute(
+            "SELECT shares FROM transactions WHERE user_id = ? AND symbol = ? GROUP BY symbol", user_id, symbol)[0]["shares"]
 
+        # if user boldly trying to sell more shares than the own, politely decline
         if userSharesOwned < shares:
-            return apology("Insufficient shares owned")
+            return apology("Nice try, but you don't have that many!")
 
         # get user current cash balance
         userCash = db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"]
 
         # update user's cash balance to reflect the sold share(s)
-        db.execute("UPDATE users SET cash = ? WHERE id = ?", userCash + sellPrice, user_id )
-        db.execute("INSERT INTO transactions (user_id, name, shares, price, type, symbol) VALUES (?, ?, ?, ?, ?, ?)", user_id, productName, -shares, productPrice, 'sell', symbol)
+        db.execute("UPDATE users SET cash = ? WHERE id = ?", userCash + sellPrice, user_id)
+        db.execute("INSERT INTO transactions (user_id, name, shares, price, type, symbol) VALUES (?, ?, ?, ?, ?, ?)",
+                   user_id, productName, -shares, productPrice, 'sell', symbol)
 
         # return user to home
         return redirect("/")
