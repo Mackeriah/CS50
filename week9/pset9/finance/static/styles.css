@@ -53,3 +53,9 @@ td {
 #test {
     color: green;
 }
+
+
+#symbolDetails {
+    color: green;
+    text-decoration: underline;
+}
